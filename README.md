@@ -42,7 +42,7 @@ A modern password generator and security checker web application that helps you 
 
 ### Usage 🚀
 
- # Generate Password:
+ - Generate Password:
 
    * Select desired password length
 
