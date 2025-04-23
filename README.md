@@ -40,7 +40,7 @@ A modern password generator and security checker web application that helps you 
 
   
 
-### Usage 🚀
+## Usage 🚀
 
  - Generate Password:
 
