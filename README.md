@@ -38,7 +38,10 @@ A modern password generator and security checker web application that helps you 
 - Clipboard API for password copying
 - Google Fonts (Inter, Fira Code)
 
-## Usage 🚀
+  
+
+### Usage 🚀
+
  # Generate Password:
 
    * Select desired password length
