@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecurePass</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --bg-gradient: linear-gradient(145deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --text: rgba(255, 255, 255, 0.95);
+            --text-dim: rgba(255, 255, 255, 0.7);
+            --safe: #10b981;
+            --breach: #ef4444;
+            --card-bg: rgba(15, 23, 42, 0.8);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(2, 6, 23, 0.5);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            min-height: 100vh;
+            padding: var(--spacing-md);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.5;
+        }
+        
+        .app {
+            width: 100%;
+            max-width: 460px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+        
+        .header {
+            padding: var(--spacing-lg) var(--spacing-lg) var(--spacing-md);
+            text-align: center;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        h1 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: var(--spacing-md);
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-dim);
+            position: relative;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--text);
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 25%;
+            right: 25%;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 2px 2px 0 0;
+        }
+        
+        .content {
+            padding: var(--spacing-lg);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .input-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px var(--spacing-md);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            margin-right: var(--spacing-sm);
+            accent-color: var(--primary);
+        }
+        
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: var(--spacing-md);
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background: var(--primary-dark);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .result {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+            line-height: 1.5;
+        }
+        
+        .safe {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--safe);
+        }
+        
+        .breach {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--breach);
+        }
+        
+        .password-container {
+            margin: var(--spacing-lg) 0;
+        }
+        
+        .password-display {
+            padding: var(--spacing-md);
+            background: var(--input-bg);
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            word-break: break-all;
+            text-align: left;
+            border: 1px solid var(--input-border);
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            overflow-wrap: anywhere;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .password-display:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .password-display::after {
+            content: 'Click to copy';
+            position: absolute;
+            right: var(--spacing-md);
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .password-display:hover::after {
+            opacity: 1;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .action-buttons button {
+            margin-top: 0;
+            flex: 1;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .copied-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .show-copied {
+            opacity: 1;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        .info-text {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin: var(--spacing-sm) 0;
+            line-height: 1.4;
+        }
+        
+        .redirect-notice {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: var(--spacing-md);
+            margin: var(--spacing-md) 0;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        /* Specific spacing adjustments */
+        #password-to-check {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        #email-to-check {
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        #check-password-btn {
+            margin-top: var(--spacing-md);
+        }
+        
+        #check-email-btn {
+            margin-top: 0;
+        }
+        
+        .length-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .length-selector select {
+            flex: 1;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>SecurePass</h1>
+            <div class="subtitle">Generate & Check Secure Passwords</div>
+        </div>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="generate">Generate</div>
+            <div class="tab" data-tab="check">Check</div>
+        </div>
+        
+        <div class="content">
+            <!-- Generator Tab -->
+            <div class="tab-content active" id="generate-tab">
+                <div class="input-group">
+                    <label>Password Length</label>
+                    <div class="length-selector">
+                        <select id="length">
+                            <option value="8">8 characters</option>
+                            <option value="10">10 characters</option>
+                            <option value="12" selected>12 characters</option>
+                            <option value="14">14 characters</option>
+                            <option value="16">16 characters</option>
+                            <option value="18">18 characters</option>
+                            <option value="20">20 characters</option>
+                            <option value="24">24 characters</option>
+                            <option value="28">28 characters</option>
+                            <option value="32">32 characters</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Character Types</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="uppercase" checked>
+                        <label for="uppercase">Uppercase (A-Z)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="lowercase" checked>
+                        <label for="lowercase">Lowercase (a-z)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="numbers" checked>
+                        <label for="numbers">Numbers (0-9)</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="symbols" checked>
+                        <label for="symbols">Symbols (!@#$)</label>
+                    </div>
+                </div>
+                
+                <button id="generate-btn">Generate Password</button>
+                
+                <div id="password-result" style="display: none;">
+                    <div class="password-container">
+                        <div class="password-display" id="password">
+                            <div class="copied-message">Copied!</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="regenerate-btn">Regenerate</button>
+                        <button id="check-pwd-btn">Check Safety</button>
+                    </div>
+                    
+                    <div id="pwd-check-result" class="result"></div>
+                </div>
+            </div>
+            
+            <!-- Checker Tab -->
+            <div class="tab-content" id="check-tab">
+                <div class="input-group">
+                    <label>Password to Check</label>
+                    <input type="password" id="password-to-check" placeholder="Enter your password">
+                    <button id="check-password-btn">Check Password</button>
+                    <div id="password-check-result" class="result"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Email to Check</label>
+                    <input type="email" id="email-to-check" placeholder="your@email.com">
+                    <div class="redirect-notice">
+                        <strong>Note:</strong> For email checking, you'll be securely redirected to the official HaveIBeenPwned.com website.
+                    </div>
+                    <button id="check-email-btn">Check Email on HIBP</button>
+                    <div id="email-check-result" class="result"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelector('.tab.active').classList.remove('active');
+                tab.classList.add('active');
+                
+                document.querySelector('.tab-content.active').classList.remove('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+        
+        // Password Generator
+        function generateNewPassword() {
+            const length = parseInt(document.getElementById('length').value);
+            const uppercase = document.getElementById('uppercase').checked;
+            const lowercase = document.getElementById('lowercase').checked;
+            const numbers = document.getElementById('numbers').checked;
+            const symbols = document.getElementById('symbols').checked;
+            
+            if (!uppercase && !lowercase && !numbers && !symbols) {
+                alert('Please select at least one character type!');
+                return null;
+            }
+            
+            let chars = '';
+            const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
+            const numberChars = '0123456789';
+            const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            
+            if (uppercase) chars += upperChars;
+            if (lowercase) chars += lowerChars;
+            if (numbers) chars += numberChars;
+            if (symbols) chars += symbolChars;
+            
+            let password = '';
+            const cryptoArray = new Uint32Array(length);
+            crypto.getRandomValues(cryptoArray);
+            
+            for (let i = 0; i < length; i++) {
+                password += chars[cryptoArray[i] % chars.length];
+            }
+            
+            return password;
+        }
+        
+        document.getElementById('generate-btn').addEventListener('click', function() {
+            const password = generateNewPassword();
+            if (password) {
+                const passwordElement = document.getElementById('password');
+                const copiedMsg = passwordElement.querySelector('.copied-message');
+                passwordElement.textContent = '';
+                passwordElement.appendChild(copiedMsg);
+                passwordElement.insertBefore(document.createTextNode(password), copiedMsg);
+                
+                document.getElementById('password-result').style.display = 'block';
+                document.getElementById('pwd-check-result').style.display = 'none';
+            }
+        });
+        
+        // Regenerate password
+        document.getElementById('regenerate-btn').addEventListener('click', function() {
+            const password = generateNewPassword();
+            if (password) {
+                const passwordElement = document.getElementById('password');
+                const copiedMsg = passwordElement.querySelector('.copied-message');
+                passwordElement.textContent = '';
+                passwordElement.appendChild(copiedMsg);
+                passwordElement.insertBefore(document.createTextNode(password), copiedMsg);
+                
+                document.getElementById('pwd-check-result').style.display = 'none';
+            }
+        });
+        
+        // Click to copy password
+        document.getElementById('password').addEventListener('click', function() {
+            const passwordText = this.childNodes[0] ? this.childNodes[0].nodeValue : '';
+            if (!passwordText.trim()) return;
+            
+            navigator.clipboard.writeText(passwordText).then(() => {
+                const copiedMsg = this.querySelector('.copied-message');
+                copiedMsg.classList.add('show-copied');
+                setTimeout(() => {
+                    copiedMsg.classList.remove('show-copied');
+                }, 1000);
+            });
+        });
+        
+        // Check Generated Password
+        document.getElementById('check-pwd-btn').addEventListener('click', function() {
+            const passwordElement = document.getElementById('password');
+            const passwordText = passwordElement.childNodes[0] ? passwordElement.childNodes[0].nodeValue : '';
+            
+            if (!passwordText.trim()) {
+                alert('Please generate a password first!');
+                return;
+            }
+            checkPassword(passwordText, 'pwd-check-result');
+        });
+        
+        // Check Entered Password
+        document.getElementById('check-password-btn').addEventListener('click', function() {
+            const password = document.getElementById('password-to-check').value;
+            if (!password) {
+                alert('Please enter a password to check!');
+                return;
+            }
+            checkPassword(password, 'password-check-result');
+        });
+        
+        // Check Email (redirect to HIBP)
+        document.getElementById('check-email-btn').addEventListener('click', function() {
+            const email = document.getElementById('email-to-check').value.trim();
+            const resultElement = document.getElementById('email-check-result');
+            resultElement.style.display = 'none';
+            
+            if (!email) {
+                resultElement.textContent = 'Please enter an email address to check';
+                resultElement.className = 'result breach';
+                resultElement.style.display = 'block';
+                return;
+            }
+            
+            // Validate email format
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                resultElement.textContent = 'Please enter a valid email address';
+                resultElement.className = 'result breach';
+                resultElement.style.display = 'block';
+                return;
+            }
+            
+            const hibpLink = `https://haveibeenpwned.com/account/${encodeURIComponent(email)}`;
+            window.open(hibpLink, '_blank');
+            
+            resultElement.innerHTML = `
+                You've been redirected to the official HaveIBeenPwned.com website.<br><br>
+                <a href="${hibpLink}" target="_blank" rel="noopener noreferrer">
+                    Click here if the page didn't open automatically
+                </a>
+                <br><br>
+                <small style="color: var(--text-dim);">
+                    (Opens in a new tab)
+                </small>
+            `;
+            resultElement.className = 'result';
+            resultElement.style.display = 'block';
+        });
+        
+        async function checkPassword(password, resultElementId) {
+            const resultElement = document.getElementById(resultElementId);
+            resultElement.style.display = 'none';
+            resultElement.textContent = 'Checking breach database...';
+            resultElement.className = 'result';
+            resultElement.style.display = 'block';
+            
+            // SHA-1 hash the password
+            const msgBuffer = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+            const prefix = hashHex.substring(0, 5);
+            const suffix = hashHex.substring(5);
+            
+            try {
+                const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+                const data = await response.text();
+                const hashes = data.split('\r\n');
+                let found = false;
+                let count = 0;
+                
+                for (const line of hashes) {
+                    const [hashSuffix, hashCount] = line.split(':');
+                    if (hashSuffix === suffix) {
+                        found = true;
+                        count = parseInt(hashCount);
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    resultElement.textContent = `⚠️ Breached! This password appears in ${count} data leaks.`;
+                    resultElement.className = 'result breach';
+                } else {
+                    resultElement.textContent = '✅ Secure! This password hasn\'t been found in any breaches.';
+                    resultElement.className = 'result safe';
+                }
+            } catch (error) {
+                resultElement.textContent = '⚠️ Connection error. Please try again.';
+                resultElement.className = 'result breach';
+            }
+        }
+    </script>
+</body>
+</html>
